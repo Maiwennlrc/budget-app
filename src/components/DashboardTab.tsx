@@ -27,12 +27,14 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
     <div className="space-y-3">
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <p className="text-sm text-encre-light">
-          Solde au {dernierImport?.periodeFin ? formatJourLong(dernierImport.periodeFin) : 'dernier relevé'}
+          Sur ton compte au {dernierImport?.periodeFin ? formatJourLong(dernierImport.periodeFin) : 'dernier relevé'}
         </p>
         <p className="text-3xl font-semibold">
           {dernierImport?.nouveauSolde != null ? formatEuros(dernierImport.nouveauSolde) : '—'}
         </p>
-        <p className="mt-1 text-sm text-encre-light">{nb} opérations enregistrées</p>
+        <p className="mt-1 text-sm text-encre-light">
+          D'après ton dernier relevé · {nb} opérations enregistrées
+        </p>
       </div>
       <div className="rounded-2xl bg-peche-light p-4 text-sm text-peche-dark">
         Prochaine étape : tes dépenses par catégorie et tes abonnements à passer en revue ✨

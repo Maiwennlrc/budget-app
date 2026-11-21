@@ -12,6 +12,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // pdf.js (le lecteur de PDF) pèse ~1,3 Mo : on l'autorise dans le cache hors ligne.
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+      },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Mon budget',

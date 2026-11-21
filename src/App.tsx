@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { LayoutDashboard, Receipt, SearchCheck, Settings, type LucideIcon } from 'lucide-react'
+import DashboardTab from './components/DashboardTab.tsx'
+import OperationsTab from './components/OperationsTab.tsx'
+import SettingsTab from './components/SettingsTab.tsx'
 
 type TabId = 'dashboard' | 'transactions' | 'audit' | 'settings'
 
@@ -24,14 +27,16 @@ export default function App() {
       </header>
 
       <main className="flex-1 overflow-y-auto p-4">
-        <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
-          <current.icon className="mx-auto mb-3 h-10 w-10 text-prune" />
-          <p className="font-medium">L'onglet « {current.label} » arrive bientôt</p>
-          <p className="mt-1 text-sm text-encre-light">On construit ça ensemble, étape par étape.</p>
-        </div>
-        <div className="mt-3 rounded-2xl bg-peche-light p-4 text-sm text-peche-dark">
-          Bientôt ici : tes abonnements à passer en revue ✨
-        </div>
+        {tab === 'dashboard' && <DashboardTab allerAuxOperations={() => setTab('transactions')} />}
+        {tab === 'transactions' && <OperationsTab />}
+        {tab === 'audit' && (
+          <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
+            <SearchCheck className="mx-auto mb-3 h-10 w-10 text-prune" />
+            <p className="font-medium">L'audit de tes abonnements arrive bientôt</p>
+            <p className="mt-1 text-sm text-encre-light">On construit ça ensemble, étape par étape.</p>
+          </div>
+        )}
+        {tab === 'settings' && <SettingsTab />}
       </main>
 
       <nav className="grid grid-cols-4 border-t border-prune-light bg-white pb-[env(safe-area-inset-bottom)]">

@@ -14,8 +14,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Budget & Audit',
-        short_name: 'Budget',
+        name: 'Mon budget',
+        short_name: 'Mon budget',
         description: "Suivi de budget et audit d'abonnements, 100 % local",
         lang: 'fr',
         theme_color: '#0f766e',

@@ -1,4 +1,4 @@
-# Budget & Audit
+# Mon budget
 
 PWA mobile-first de suivi de budget et d'audit d'abonnements.
 

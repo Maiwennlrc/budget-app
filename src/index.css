@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* Palette « Prune et pêche » — utilisable partout via bg-prune, text-peche-dark, etc. */
+@theme {
+  --color-prune: #7b3f61;
+  --color-prune-light: #f5e1e6;
+  --color-peche: #f2a07b;
+  --color-peche-light: #fce3d6;
+  --color-peche-dark: #8a3d1e;
+  --color-creme: #fdf3ee;
+  --color-encre: #3a2030;
+  --color-encre-light: #8c6a7c;
+}
+
 html,
 body,
 #root {
@@ -8,7 +20,8 @@ body,
 
 body {
   margin: 0;
-  background: #f8fafc;
+  background: var(--color-creme);
+  color: var(--color-encre);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }

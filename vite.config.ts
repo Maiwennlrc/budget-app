@@ -7,12 +7,19 @@ import { VitePWA } from 'vite-plugin-pwa'
 // → tous les chemins doivent commencer par /budget-app/
 export default defineConfig({
   base: '/budget-app/',
+  // Date de construction, affichée dans Réglages pour vérifier qu'on a la dernière version.
+  define: {
+    __VERSION__: JSON.stringify(
+      new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'short', timeStyle: 'short' }),
+    ),
+  },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        cleanupOutdatedCaches: true,
         // pdf.js (le lecteur de PDF) pèse ~1,3 Mo : on l'autorise dans le cache hors ligne.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

@@ -43,6 +43,8 @@ export default function SettingsTab() {
         <Trash2 className="h-4 w-4" />
         Effacer toutes mes données{nb ? ` (${nb} opérations)` : ''}
       </button>
+
+      <p className="text-center text-xs text-encre-light">Mon budget · version du {__VERSION__}</p>
     </div>
   )
 }

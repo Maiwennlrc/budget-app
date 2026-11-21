@@ -20,7 +20,7 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-creme);
+  background: var(--color-prune-light);
   color: var(--color-encre);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;

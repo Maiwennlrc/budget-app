@@ -17,7 +17,7 @@ export default function App() {
   const current = TABS.find((t) => t.id === tab)!
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="mx-auto flex h-full max-w-md flex-col bg-creme sm:border-x sm:border-prune-light">
       <header className="bg-prune px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] text-white">
         <p className="text-sm text-white/80">Salut 👋</p>
         <h1 className="text-xl font-semibold">{tab === 'dashboard' ? 'Mon budget' : current.label}</h1>

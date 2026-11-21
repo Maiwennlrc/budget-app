@@ -5,6 +5,7 @@ import { db, type Transaction } from '../db.ts'
 import { importReleve, type ImportResult } from '../lib/importReleves.ts'
 import { formatEuros } from '../lib/money.ts'
 import { formatJourCourt, formatJourLong, formatMois } from '../lib/dates.ts'
+import { LIBELLES_TYPE, typeOperation } from '../lib/classement.ts'
 
 export default function OperationsTab() {
   const [enCours, setEnCours] = useState(false)
@@ -140,6 +141,11 @@ function ListeOperations({ operations }: { operations: Transaction[] }) {
                   <p className="truncate text-sm font-medium">{o.libelle}</p>
                   <p className="text-xs text-encre-light">
                     {formatJourCourt(jour(o))}
+                    {typeOperation(o) !== 'depense' && (
+                      <span className="ml-2 rounded-full bg-prune-light px-2 py-0.5 text-[11px] text-prune">
+                        {LIBELLES_TYPE[typeOperation(o)]}
+                      </span>
+                    )}
                     {o.devise && ` · ${formatEuros(o.devise.montant).replace('€', o.devise.devise)}`}
                   </p>
                 </div>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { FolderOpen, Save, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react'
+import { BookOpen, FolderOpen, Save, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react'
 import { db } from '../db.ts'
-import { META_DERNIERE, META_MDP } from '../lib/sauvegarde.ts'
+import { ecrireMeta, META_DERNIERE, META_MDP } from '../lib/sauvegarde.ts'
+import { META_PRENOM } from './Onboarding.tsx'
 import { RestaurerSheet, SauvegarderSheet } from './BackupSheets.tsx'
 
 /** "il y a 3 jours", "aujourd'hui"… */
@@ -13,9 +14,10 @@ function depuis(iso: string): string {
   return `il y a ${jours} jours`
 }
 
-export default function SettingsTab() {
+export default function SettingsTab({ prenom, revoirGuide }: { prenom: string; revoirGuide: () => void }) {
   const [protege, setProtege] = useState<boolean | null>(null)
   const [fiche, setFiche] = useState<'sauver' | 'restaurer' | null>(null)
+  const [nomSaisi, setNomSaisi] = useState(prenom)
   const nb = useLiveQuery(() => db.transactions.count(), [])
   const derniere = useLiveQuery(() => db.meta.get(META_DERNIERE), [])
   const mdpMemorise = useLiveQuery(() => db.meta.get(META_MDP), [])
@@ -34,6 +36,22 @@ export default function SettingsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Prénom */}
+      <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <label htmlFor="prenom-reglages" className="font-medium">
+          👋 Ton prénom
+        </label>
+        <input
+          id="prenom-reglages"
+          value={nomSaisi}
+          onChange={(e) => setNomSaisi(e.target.value)}
+          onBlur={() => void ecrireMeta(META_PRENOM, nomSaisi.trim() || null)}
+          autoComplete="given-name"
+          placeholder="Ton prénom"
+          className="mt-2 w-full rounded-xl border border-prune-light px-3 py-2 text-base outline-none focus:border-prune"
+        />
+      </div>
+
       {/* Sauvegarde */}
       <div className="rounded-2xl bg-white p-4 shadow-sm">
         <p className="font-medium">💾 Sauvegarde</p>
@@ -89,6 +107,13 @@ export default function SettingsTab() {
       >
         <Trash2 className="h-4 w-4" />
         Effacer toutes mes données{nb ? ` (${nb} opérations)` : ''}
+      </button>
+
+      <button
+        onClick={revoirGuide}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-medium text-prune shadow-sm"
+      >
+        <BookOpen className="h-4 w-4" /> Revoir le guide de démarrage
       </button>
 
       <p className="text-center text-xs text-encre-light">Mon budget · version du {__VERSION__}</p>

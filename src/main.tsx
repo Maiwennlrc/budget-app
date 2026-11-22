@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.tsx'
+// Chargé dès le démarrage pour capter l'invitation à installer l'app (Android).
+import './lib/installation.ts'
 
 // Demande au navigateur de ne pas effacer nos données quand il manque de place.
 void navigator.storage?.persist?.()

@@ -174,7 +174,7 @@ export function SauvegarderSheet({ onClose }: { onClose: () => void }) {
         <p className="mb-3 text-sm text-encre-light">
           Toutes tes opérations, règles et réponses d'audit sont rangées dans un fichier protégé par un mot de passe.
         </p>
-        <ChampMotDePasse valeur={mdp} onChange={setMdp} nouveau />
+        <ChampMotDePasse valeur={mdp} onChange={(v) => (setMdp(v), setErreur(''))} nouveau />
         <CaseSeSouvenir coche={seSouvenir} onChange={setSeSouvenir} />
         <p className="mt-3 rounded-xl bg-peche-light p-3 text-xs text-peche-dark">
           ⚠️ Si tu oublies ce mot de passe, la sauvegarde ne pourra plus jamais être ouverte, par personne. Accepte de
@@ -255,7 +255,7 @@ export function RestaurerSheet({ onClose }: { onClose: () => void }) {
           />
         </label>
         <div className="mt-3">
-          <ChampMotDePasse valeur={mdp} onChange={setMdp} nouveau={false} />
+          <ChampMotDePasse valeur={mdp} onChange={(v) => (setMdp(v), setErreur(''))} nouveau={false} />
         </div>
         <CaseSeSouvenir coche={seSouvenir} onChange={setSeSouvenir} />
         <p className="mt-3 text-xs text-encre-light">

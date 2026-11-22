@@ -50,12 +50,19 @@ export interface Resiliation {
   montantMensuel: number
 }
 
+/** Petites informations de l'app (date de dernière sauvegarde, mot de passe mémorisé…). */
+export interface Meta {
+  cle: string
+  valeur: string
+}
+
 export const db = new Dexie('mon-budget') as Dexie & {
   transactions: EntityTable<Transaction, 'id'>
   imports: EntityTable<ImportRecord, 'id'>
   regles: EntityTable<Regle, 'cle'>
   audits: EntityTable<AuditMois, 'id'>
   resiliations: EntityTable<Resiliation, 'cle'>
+  meta: EntityTable<Meta, 'cle'>
 }
 
 // Les champs listés ici sont « indexés » : on peut trier et filtrer dessus rapidement.
@@ -73,4 +80,9 @@ db.version(2).stores({
 db.version(3).stores({
   audits: '&id, periode',
   resiliations: '&cle',
+})
+
+// Version 4 : informations de l'app (sauvegardes).
+db.version(4).stores({
+  meta: '&cle',
 })

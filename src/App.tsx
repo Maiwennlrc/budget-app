@@ -30,7 +30,7 @@ export default function App() {
       </header>
 
       <main className="flex-1 overflow-y-auto p-4">
-        {tab === 'dashboard' && <DashboardTab allerAuxOperations={() => setTab('transactions')} allerALAudit={() => setTab('audit')} />}
+        {tab === 'dashboard' && <DashboardTab allerAuxOperations={() => setTab('transactions')} allerALAudit={() => setTab('audit')} allerAuxReglages={() => setTab('settings')} />}
         {tab === 'months' && <MonthsTab allerAuxOperations={() => setTab('transactions')} />}
         {tab === 'transactions' && <OperationsTab />}
         {tab === 'audit' && <AuditTab allerAuxOperations={() => setTab('transactions')} />}

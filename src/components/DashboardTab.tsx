@@ -4,18 +4,24 @@ import { formatJourCourt, formatJourLong } from '../lib/dates.ts'
 import { formatEuros } from '../lib/money.ts'
 import { ajouterJours, bilan, ecartJours } from '../lib/cycles.ts'
 import { CLASSEMENTS, type CategorieId } from '../lib/categories.ts'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../db.ts'
+import { META_DERNIERE } from '../lib/sauvegarde.ts'
 import { useBudget } from '../hooks/useBudget.ts'
 import { useAudit } from '../hooks/useAudit.ts'
 
 export default function DashboardTab({
   allerAuxOperations,
   allerALAudit,
+  allerAuxReglages,
 }: {
   allerAuxOperations: () => void
   allerALAudit: () => void
+  allerAuxReglages: () => void
 }) {
   const budget = useBudget()
   const audit = useAudit()
+  const derniereSauvegarde = useLiveQuery(() => db.meta.get(META_DERNIERE), [])
   const [choix, setChoix] = useState<number | null>(null)
 
   if (!budget) return null
@@ -51,8 +57,27 @@ export default function DashboardTab({
 
   const dernierImport = imports.at(-1)
 
+  // Rappel de sauvegarde : jamais sauvegardé, ou il y a plus de 30 jours.
+  const sauvegardeAFaire =
+    derniereSauvegarde === undefined ||
+    Date.now() - new Date(derniereSauvegarde.valeur).getTime() > 30 * 86_400_000
+
   return (
     <div className="space-y-3">
+      {sauvegardeAFaire && (
+        <button
+          onClick={allerAuxReglages}
+          className="flex w-full items-center justify-between rounded-2xl bg-peche-light px-4 py-3 text-left text-sm text-peche-dark"
+        >
+          <span>
+            💾 <span className="font-semibold">Pense à sauvegarder tes données</span>
+            <span className="block text-xs">
+              {derniereSauvegarde ? 'Ta dernière sauvegarde date de plus d’un mois.' : 'Tu n’as encore jamais fait de sauvegarde.'}
+            </span>
+          </span>
+          <span aria-hidden>→</span>
+        </button>
+      )}
       {audit && audit.aRevoir > 0 && (
         <button
           onClick={allerALAudit}

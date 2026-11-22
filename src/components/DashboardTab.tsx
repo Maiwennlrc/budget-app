@@ -5,9 +5,17 @@ import { formatEuros } from '../lib/money.ts'
 import { ajouterJours, bilan, ecartJours } from '../lib/cycles.ts'
 import { CLASSEMENTS, type CategorieId } from '../lib/categories.ts'
 import { useBudget } from '../hooks/useBudget.ts'
+import { useAudit } from '../hooks/useAudit.ts'
 
-export default function DashboardTab({ allerAuxOperations }: { allerAuxOperations: () => void }) {
+export default function DashboardTab({
+  allerAuxOperations,
+  allerALAudit,
+}: {
+  allerAuxOperations: () => void
+  allerALAudit: () => void
+}) {
   const budget = useBudget()
+  const audit = useAudit()
   const [choix, setChoix] = useState<number | null>(null)
 
   if (!budget) return null
@@ -45,6 +53,19 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
 
   return (
     <div className="space-y-3">
+      {audit && audit.aRevoir > 0 && (
+        <button
+          onClick={allerALAudit}
+          className="flex w-full items-center justify-between rounded-2xl bg-peche-light px-4 py-3 text-left text-sm text-peche-dark"
+        >
+          <span>
+            📋 <span className="font-semibold">{audit.aRevoir}</span> abonnement{audit.aRevoir > 1 ? 's' : ''} à passer en
+            revue ce mois-ci
+          </span>
+          <span aria-hidden>→</span>
+        </button>
+      )}
+
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <button

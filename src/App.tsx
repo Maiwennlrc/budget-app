@@ -3,6 +3,7 @@ import { BarChart3, LayoutDashboard, Receipt, SearchCheck, Settings, type Lucide
 import DashboardTab from './components/DashboardTab.tsx'
 import OperationsTab from './components/OperationsTab.tsx'
 import MonthsTab from './components/MonthsTab.tsx'
+import AuditTab from './components/AuditTab.tsx'
 import SettingsTab from './components/SettingsTab.tsx'
 
 type TabId = 'dashboard' | 'months' | 'transactions' | 'audit' | 'settings'
@@ -29,16 +30,10 @@ export default function App() {
       </header>
 
       <main className="flex-1 overflow-y-auto p-4">
-        {tab === 'dashboard' && <DashboardTab allerAuxOperations={() => setTab('transactions')} />}
+        {tab === 'dashboard' && <DashboardTab allerAuxOperations={() => setTab('transactions')} allerALAudit={() => setTab('audit')} />}
         {tab === 'months' && <MonthsTab allerAuxOperations={() => setTab('transactions')} />}
         {tab === 'transactions' && <OperationsTab />}
-        {tab === 'audit' && (
-          <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
-            <SearchCheck className="mx-auto mb-3 h-10 w-10 text-prune" />
-            <p className="font-medium">L'audit de tes abonnements arrive bientôt</p>
-            <p className="mt-1 text-sm text-encre-light">On construit ça ensemble, étape par étape.</p>
-          </div>
-        )}
+        {tab === 'audit' && <AuditTab allerAuxOperations={() => setTab('transactions')} />}
         {tab === 'settings' && <SettingsTab />}
       </main>
 

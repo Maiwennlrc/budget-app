@@ -1,5 +1,6 @@
 import type { ReleveOperation } from './lcl/parseReleve.ts'
 import { typeOperation } from './classement.ts'
+import { typeDuClassement, type CategorieId, type Classement } from './categories.ts'
 
 // Un « mois budgétaire » va d'une paie à la veille de la paie suivante.
 
@@ -112,17 +113,29 @@ export interface BilanCycle {
   revenus: number
   epargne: number
   remboursements: number
+  /** Dépenses par catégorie (avant déduction des remboursements), en centimes positifs */
+  parCategorie: Partial<Record<CategorieId, number>>
 }
 
-/** Les totaux d'une période (montants positifs, en centimes). */
-export function bilan(ops: Op[], debut: string, fin: string): BilanCycle {
-  const b: BilanCycle = { depense: 0, revenus: 0, epargne: 0, remboursements: 0 }
+/**
+ * Les totaux d'une période (montants positifs, en centimes).
+ * `classe` donne le classement de chaque opération (avec les corrections de l'utilisatrice).
+ */
+export function bilan<T extends Op>(
+  ops: T[],
+  debut: string,
+  fin: string,
+  classe: (o: T) => Classement = (o) => typeOperation(o) === 'depense' ? 'a-classer' : (typeOperation(o) as Classement),
+): BilanCycle {
+  const b: BilanCycle = { depense: 0, revenus: 0, epargne: 0, remboursements: 0, parCategorie: {} }
   for (const o of ops) {
     const j = jourOperation(o)
     if (j < debut || j > fin) continue
-    switch (typeOperation(o)) {
+    const c = classe(o)
+    switch (typeDuClassement(c)) {
       case 'depense':
         b.depense += -o.montant
+        b.parCategorie[c as CategorieId] = (b.parCategorie[c as CategorieId] ?? 0) - o.montant
         break
       case 'epargne':
         b.epargne += -o.montant

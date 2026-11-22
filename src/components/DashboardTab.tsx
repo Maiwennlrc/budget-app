@@ -5,11 +5,15 @@ import { db } from '../db.ts'
 import { formatJourCourt, formatJourLong } from '../lib/dates.ts'
 import { formatEuros } from '../lib/money.ts'
 import { ajouterJours, bilan, construireCycles, ecartJours, jourOperation } from '../lib/cycles.ts'
+import { CLASSEMENTS, classer, type CategorieId } from '../lib/categories.ts'
+import { useRegles } from '../hooks/useRegles.ts'
+import type { Transaction } from '../db.ts'
 
 export default function DashboardTab({ allerAuxOperations }: { allerAuxOperations: () => void }) {
   const operations = useLiveQuery(() => db.transactions.toArray(), [])
   const imports = useLiveQuery(() => db.imports.orderBy('periodeFin').toArray(), [])
   const [choix, setChoix] = useState<number | null>(null)
+  const regles = useRegles()
 
   const donnees = useMemo(() => {
     if (!operations || !imports || operations.length === 0) return null
@@ -24,7 +28,7 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
     return { cycles, premiere, derniere, parDefaut }
   }, [operations, imports])
 
-  if (!operations || !imports) return null
+  if (!operations || !imports || !regles) return null
 
   if (!donnees) {
     return (
@@ -43,7 +47,8 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
   const index = Math.min(choix ?? parDefaut, cycles.length - 1)
   const cycle = cycles[index]
   const enCours = cycle.fin > derniere
-  const b = bilan(operations, cycle.debut, cycle.fin)
+  const classe = (o: Transaction) => classer(o, regles)
+  const b = bilan(operations, cycle.debut, cycle.fin, classe)
 
   // Comparaison avec le mois de paie précédent, au même nombre de jours.
   const precedent = cycles[index - 1]
@@ -52,7 +57,7 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
     const fin = enCours
       ? minIso(ajouterJours(precedent.debut, ecartJours(cycle.debut, derniere)), precedent.fin)
       : precedent.fin
-    comparaison = { ecart: b.depense - bilan(operations, precedent.debut, fin).depense, memeDate: enCours }
+    comparaison = { ecart: b.depense - bilan(operations, precedent.debut, fin, classe).depense, memeDate: enCours }
   }
 
   const dernierImport = imports.at(-1)
@@ -118,6 +123,8 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
         )}
       </div>
 
+      <Repartition parCategorie={b.parCategorie} remboursements={b.remboursements} />
+
       {dernierImport?.nouveauSolde != null && dernierImport.periodeFin && (
         <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-4 text-sm shadow-sm">
           <span className="text-encre-light">Sur ton compte au {formatJourLong(dernierImport.periodeFin)}</span>
@@ -125,9 +132,49 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
         </div>
       )}
 
-      <div className="rounded-2xl bg-peche-light p-4 text-sm text-peche-dark">
-        Prochaine étape : tes dépenses par catégorie et tes abonnements à passer en revue ✨
-      </div>
+    </div>
+  )
+}
+
+function Repartition({
+  parCategorie,
+  remboursements,
+}: {
+  parCategorie: Partial<Record<CategorieId, number>>
+  remboursements: number
+}) {
+  const lignes = (Object.entries(parCategorie) as [CategorieId, number][])
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])
+  if (lignes.length === 0) return null
+  const max = lignes[0][1]
+  return (
+    <div className="rounded-2xl bg-white p-5 shadow-sm">
+      <p className="mb-3 font-medium">Où est parti ton argent</p>
+      <ul className="space-y-3">
+        {lignes.map(([cat, v]) => (
+          <li key={cat}>
+            <div className="flex items-center justify-between text-sm">
+              <span>
+                {CLASSEMENTS[cat].emoji} {CLASSEMENTS[cat].label}
+              </span>
+              <span className="font-semibold">{formatEuros(v)}</span>
+            </div>
+            <div className="mt-1 h-2 rounded-full bg-prune-light">
+              <div
+                className={`h-2 rounded-full ${cat === 'a-classer' ? 'bg-peche' : 'bg-prune'}`}
+                style={{ width: `${Math.max(3, (v / max) * 100)}%` }}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+      {remboursements > 0 && (
+        <p className="mt-3 flex justify-between border-t border-prune-light pt-3 text-sm text-emerald-700">
+          <span>🤝 Remboursé par tes amis</span>
+          <span className="font-semibold">−{formatEuros(remboursements)}</span>
+        </p>
+      )}
     </div>
   )
 }

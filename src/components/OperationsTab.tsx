@@ -5,7 +5,10 @@ import { db, type Transaction } from '../db.ts'
 import { importReleve, type ImportResult } from '../lib/importReleves.ts'
 import { formatEuros } from '../lib/money.ts'
 import { formatJourCourt, formatJourLong, formatMois } from '../lib/dates.ts'
-import { LIBELLES_TYPE, typeOperation } from '../lib/classement.ts'
+import { CLASSEMENTS, classer, nomMarchand } from '../lib/categories.ts'
+import { jourOperation } from '../lib/cycles.ts'
+import { useRegles } from '../hooks/useRegles.ts'
+import OperationSheet from './OperationSheet.tsx'
 
 export default function OperationsTab() {
   const [enCours, setEnCours] = useState(false)
@@ -119,45 +122,73 @@ function EtatVide() {
 }
 
 function ListeOperations({ operations }: { operations: Transaction[] }) {
+  const regles = useRegles()
+  const [ouverte, setOuverte] = useState<Transaction | null>(null)
+  if (!regles) return null
+
   // On trie et on regroupe selon la date réelle de la dépense (date d'achat pour la carte).
-  const jour = (o: Transaction) => o.dateAchat ?? o.date
-  const triees = [...operations].sort((a, b) => jour(b).localeCompare(jour(a)))
+  const triees = [...operations].sort((a, b) => jourOperation(b).localeCompare(jourOperation(a)))
   const parMois = new Map<string, Transaction[]>()
   for (const o of triees) {
-    const cle = jour(o).slice(0, 7)
+    const cle = jourOperation(o).slice(0, 7)
     parMois.set(cle, [...(parMois.get(cle) ?? []), o])
   }
+  const aClasser = operations.filter((o) => classer(o, regles) === 'a-classer').length
+
   return (
     <div className="space-y-4">
+      {aClasser > 0 && (
+        <p className="rounded-2xl bg-peche-light px-4 py-3 text-sm text-peche-dark">
+          ❓ {aClasser} opération{aClasser > 1 ? 's' : ''} à classer : appuie dessus pour choisir une catégorie.
+        </p>
+      )}
       {[...parMois.entries()].map(([mois, ops]) => (
         <section key={mois}>
           <h2 className="mb-2 px-1 text-sm font-semibold text-encre-light first-letter:uppercase">
             {formatMois(`${mois}-01`)} · {ops.length} opération{ops.length > 1 ? 's' : ''}
           </h2>
           <ul className="divide-y divide-prune-light overflow-hidden rounded-2xl bg-white shadow-sm">
-            {ops.map((o) => (
-              <li key={o.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{o.libelle}</p>
-                  <p className="text-xs text-encre-light">
-                    {formatJourCourt(jour(o))}
-                    {typeOperation(o) !== 'depense' && (
-                      <span className="ml-2 rounded-full bg-prune-light px-2 py-0.5 text-[11px] text-prune">
-                        {LIBELLES_TYPE[typeOperation(o)]}
+            {ops.map((o) => {
+              const c = classer(o, regles)
+              return (
+                <li key={o.id}>
+                  <button
+                    onClick={() => setOuverte(o)}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-creme"
+                  >
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg ${
+                        c === 'a-classer' ? 'bg-peche-light' : 'bg-prune-light'
+                      }`}
+                    >
+                      {CLASSEMENTS[c].emoji}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{nomMarchand(o)}</span>
+                      <span className="block text-xs text-encre-light">
+                        {formatJourCourt(jourOperation(o))} · {CLASSEMENTS[c].label}
+                        {o.devise && ` · ${formatEuros(o.devise.montant).replace('€', o.devise.devise)}`}
                       </span>
-                    )}
-                    {o.devise && ` · ${formatEuros(o.devise.montant).replace('€', o.devise.devise)}`}
-                  </p>
-                </div>
-                <p className={`shrink-0 text-sm font-semibold ${o.montant > 0 ? 'text-emerald-700' : ''}`}>
-                  {o.montant > 0 ? '+' : ''}
-                  {formatEuros(o.montant)}
-                </p>
-              </li>
-            ))}
+                    </span>
+                    <span className={`shrink-0 text-sm font-semibold ${o.montant > 0 ? 'text-emerald-700' : ''}`}>
+                      {o.montant > 0 ? '+' : ''}
+                      {formatEuros(o.montant)}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
           </ul>
         </section>
       ))}
+      {ouverte && (
+        <OperationSheet
+          operation={operations.find((o) => o.id === ouverte.id) ?? ouverte}
+          toutes={operations}
+          regles={regles}
+          onClose={() => setOuverte(null)}
+        />
+      )}
     </div>
   )
 }

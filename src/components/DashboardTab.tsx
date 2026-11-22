@@ -1,36 +1,18 @@
-import { useMemo, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
 import { ChevronLeft, ChevronRight, LayoutDashboard, TrendingDown, TrendingUp } from 'lucide-react'
-import { db } from '../db.ts'
 import { formatJourCourt, formatJourLong } from '../lib/dates.ts'
 import { formatEuros } from '../lib/money.ts'
-import { ajouterJours, bilan, construireCycles, ecartJours, jourOperation } from '../lib/cycles.ts'
-import { CLASSEMENTS, classer, type CategorieId } from '../lib/categories.ts'
-import { useRegles } from '../hooks/useRegles.ts'
-import type { Transaction } from '../db.ts'
+import { ajouterJours, bilan, ecartJours } from '../lib/cycles.ts'
+import { CLASSEMENTS, type CategorieId } from '../lib/categories.ts'
+import { useBudget } from '../hooks/useBudget.ts'
 
 export default function DashboardTab({ allerAuxOperations }: { allerAuxOperations: () => void }) {
-  const operations = useLiveQuery(() => db.transactions.toArray(), [])
-  const imports = useLiveQuery(() => db.imports.orderBy('periodeFin').toArray(), [])
+  const budget = useBudget()
   const [choix, setChoix] = useState<number | null>(null)
-  const regles = useRegles()
 
-  const donnees = useMemo(() => {
-    if (!operations || !imports || operations.length === 0) return null
-    const jours = operations.map(jourOperation).sort()
-    const finsReleves = imports.map((i) => i.periodeFin).filter((d): d is string => !!d)
-    const derniere = [jours[jours.length - 1], ...finsReleves].sort().at(-1)!
-    const premiere = jours[0]
-    const cycles = construireCycles(operations, derniere)
-    // Par défaut : le dernier mois de paie dont on connaît au moins une semaine.
-    let parDefaut = cycles.length - 1
-    while (parDefaut > 0 && ecartJours(cycles[parDefaut].debut, derniere) < 7) parDefaut--
-    return { cycles, premiere, derniere, parDefaut }
-  }, [operations, imports])
+  if (!budget) return null
 
-  if (!operations || !imports || !regles) return null
-
-  if (!donnees) {
+  if (budget.cycles.length === 0) {
     return (
       <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
         <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-prune" />
@@ -43,11 +25,10 @@ export default function DashboardTab({ allerAuxOperations }: { allerAuxOperation
     )
   }
 
-  const { cycles, premiere, derniere, parDefaut } = donnees
+  const { operations, imports, cycles, premiere, derniere, parDefaut, classe } = budget
   const index = Math.min(choix ?? parDefaut, cycles.length - 1)
   const cycle = cycles[index]
   const enCours = cycle.fin > derniere
-  const classe = (o: Transaction) => classer(o, regles)
   const b = bilan(operations, cycle.debut, cycle.fin, classe)
 
   // Comparaison avec le mois de paie précédent, au même nombre de jours.

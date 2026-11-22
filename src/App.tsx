@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { LayoutDashboard, Receipt, SearchCheck, Settings, type LucideIcon } from 'lucide-react'
+import { BarChart3, LayoutDashboard, Receipt, SearchCheck, Settings, type LucideIcon } from 'lucide-react'
 import DashboardTab from './components/DashboardTab.tsx'
 import OperationsTab from './components/OperationsTab.tsx'
+import MonthsTab from './components/MonthsTab.tsx'
 import SettingsTab from './components/SettingsTab.tsx'
 
-type TabId = 'dashboard' | 'transactions' | 'audit' | 'settings'
+type TabId = 'dashboard' | 'months' | 'transactions' | 'audit' | 'settings'
 
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: 'dashboard', label: 'Accueil', icon: LayoutDashboard },
+  { id: 'months', label: 'Mois', icon: BarChart3 },
   { id: 'transactions', label: 'Opérations', icon: Receipt },
   { id: 'audit', label: 'Audit', icon: SearchCheck },
   { id: 'settings', label: 'Réglages', icon: Settings },
@@ -28,6 +30,7 @@ export default function App() {
 
       <main className="flex-1 overflow-y-auto p-4">
         {tab === 'dashboard' && <DashboardTab allerAuxOperations={() => setTab('transactions')} />}
+        {tab === 'months' && <MonthsTab allerAuxOperations={() => setTab('transactions')} />}
         {tab === 'transactions' && <OperationsTab />}
         {tab === 'audit' && (
           <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
@@ -39,7 +42,7 @@ export default function App() {
         {tab === 'settings' && <SettingsTab />}
       </main>
 
-      <nav className="grid grid-cols-4 border-t border-prune-light bg-white pb-[env(safe-area-inset-bottom)]">
+      <nav className="grid grid-cols-5 border-t border-prune-light bg-white pb-[env(safe-area-inset-bottom)]">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
